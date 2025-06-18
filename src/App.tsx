@@ -537,30 +537,47 @@ function MainApp() {
       {/* Right column background image */}
       <div
         className="absolute top-0 right-0 flex items-start justify-end w-1/2 h-screen"
-        style={{ zIndex: 1 }}
+        style={{ 
+          zIndex: 1,
+          backfaceVisibility: 'hidden',
+          perspective: '1000px'
+        }}
       >
         <img 
           src="/dean/bruh.png" 
           alt="Background" 
           className="object-contain max-w-full max-h-full" 
-          style={{ willChange: 'auto' }}
+          style={{ 
+            willChange: 'auto',
+            backfaceVisibility: 'hidden',
+            transform: 'translateZ(0)',
+            imageRendering: 'auto'
+          }}
           loading="eager"
+          decoding="async"
         />
       </div>
 
       <div
         className="absolute top-0 left-0 flex items-start justify-start w-1/2 h-screen"
-        style={{ zIndex: 1 }}
+        style={{ 
+          zIndex: 1,
+          backfaceVisibility: 'hidden',
+          perspective: '1000px'
+        }}
       >
         <img 
           src="/dean/bruh.png" 
           alt="Background" 
           className="object-contain max-w-full max-h-full"
           style={{ 
-            transform: 'scaleX(-1)',
-            willChange: 'auto'
+            transform: 'scaleX(-1) translateZ(0)',
+            willChange: 'auto',
+            backfaceVisibility: 'hidden',
+            imageRendering: 'auto'
           }}
           loading="eager"
+          decoding="async"
         />
       </div>
 
