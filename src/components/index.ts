@@ -2,6 +2,8 @@
 export { LoadingScreen } from './LoadingScreen';
 export { LyricComponent } from './LyricComponent';
 export { RegularImage } from './RegularImage';
+export { default as CachedImage } from './CachedImage';
+export { default as LargeBackgroundImage } from './LargeBackgroundImage';
 
 // Animation components - these would need to be moved from the main App.tsx
 // export { SkiingImage } from './animations/SkiingImage';

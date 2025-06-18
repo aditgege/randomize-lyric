@@ -9,9 +9,10 @@ import { TIMED_IMAGES } from './config/data';
 import { getRandomLyric, getCurrentTimedLyric } from './utils/lyrics';
 import { getLyricStyle, getImageStyle, backgroundNoiseStyle, backgroundGradientStyle } from './utils/styles';
 import { useAssetLoader, usePreloadedImages } from './hooks/useAssets';
+import { getAllImagePaths } from './utils/imageCache';
 
 // Components
-import { LoadingScreen, LyricComponent, RegularImage } from './components';
+import { LoadingScreen, LyricComponent, RegularImage, LargeBackgroundImage } from './components';
 // Animation components
 import {
   SkiingImage,
@@ -30,7 +31,24 @@ import {
 
 // Main App Component - wrapper that handles loading
 function App() {
-  const imageNames = useMemo(() => TIMED_IMAGES.map((img) => img.imageName), []);
+  // Comprehensive list of all images to preload
+  const imageNames = useMemo(() => {
+    // Use the comprehensive list from imageCache utility
+    const allImagePaths = getAllImagePaths();
+    
+    // Images from TIMED_IMAGES (animated images)
+    const timedImageNames = TIMED_IMAGES.map((img) => img.imageName);
+    
+    // Combine all image lists, removing duplicates
+    const combined = [
+      ...allImagePaths,
+      ...timedImageNames.map(name => name.startsWith('/') ? name : `dean/${name}`)
+    ];
+    
+    // Remove duplicates and return
+    return [...new Set(combined)];
+  }, []);
+  
   const { assetsLoaded, loadingProgress, loadingStatus } = useAssetLoader(imageNames);
 
   // Show loading screen until all assets are loaded
@@ -469,7 +487,9 @@ function MainApp() {
               height: `${Math.random() * 3 + 1}px`,
               animation: `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 2}s`,
-              opacity: Math.random() * 0.8 + 0.2
+              opacity: Math.random() * 0.8 + 0.2,
+              willChange: 'opacity, transform',
+              backfaceVisibility: 'hidden'
             }}
           />
         ))}
@@ -486,7 +506,9 @@ function MainApp() {
               height: `${Math.random() * 2 + 2}px`,
               animation: `float ${4 + Math.random() * 4}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.6 + 0.3
+              opacity: Math.random() * 0.6 + 0.3,
+              willChange: 'opacity, transform',
+              backfaceVisibility: 'hidden'
             }}
           />
         ))}
@@ -496,29 +518,29 @@ function MainApp() {
           @keyframes twinkle {
             0%, 100% { 
               opacity: 0.2; 
-              transform: scale(1);
+              transform: scale(1) translateZ(0);
             }
             50% { 
               opacity: 1; 
-              transform: scale(1.2);
+              transform: scale(1.2) translateZ(0);
             }
           }
           
           @keyframes float {
             0%, 100% { 
-              transform: translateY(0px) translateX(0px); 
+              transform: translateY(0px) translateX(0px) translateZ(0); 
               opacity: 0.3; 
             }
             25% { 
-              transform: translateY(-10px) translateX(5px); 
+              transform: translateY(-10px) translateX(5px) translateZ(0); 
               opacity: 0.8; 
             }
             50% { 
-              transform: translateY(-5px) translateX(-3px); 
+              transform: translateY(-5px) translateX(-3px) translateZ(0); 
               opacity: 1; 
             }
             75% { 
-              transform: translateY(-15px) translateX(8px); 
+              transform: translateY(-15px) translateX(8px) translateZ(0); 
               opacity: 0.6; 
             }
           }
@@ -531,53 +553,43 @@ function MainApp() {
       {/* Background noise effect */}
       <div 
         className="absolute inset-0 opacity-10"
-        style={backgroundNoiseStyle}
+        style={{
+          ...backgroundNoiseStyle,
+          willChange: 'auto',
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)'
+        }}
       />
 
-      {/* Right column background image */}
+      {/* Right and Left column background images - optimized for large images */}
       <div
-        className="absolute top-0 right-0 flex items-start justify-end w-1/2 h-screen"
+        className="absolute top-0 right-0 w-1/2 h-screen"
         style={{ 
           zIndex: 1,
           backfaceVisibility: 'hidden',
-          perspective: '1000px'
+          overflow: 'hidden'
         }}
       >
-        <img 
+        <LargeBackgroundImage 
           src="/dean/bruh.png" 
-          alt="Background" 
-          className="object-contain max-w-full max-h-full" 
-          style={{ 
-            willChange: 'auto',
-            backfaceVisibility: 'hidden',
-            transform: 'translateZ(0)',
-            imageRendering: 'auto'
-          }}
-          loading="eager"
-          decoding="async"
+          alt="Right Background" 
+          position="right"
+          flipped={false}
         />
       </div>
 
       <div
-        className="absolute top-0 left-0 flex items-start justify-start w-1/2 h-screen"
+        className="absolute top-0 left-0 w-1/2 h-screen"
         style={{ 
           zIndex: 1,
           backfaceVisibility: 'hidden',
-          perspective: '1000px'
+          overflow: 'hidden',
         }}
       >
-        <img 
+        <LargeBackgroundImage 
           src="/dean/bruh.png" 
-          alt="Background" 
-          className="object-contain max-w-full max-h-full"
-          style={{ 
-            transform: 'scaleX(-1) translateZ(0)',
-            willChange: 'auto',
-            backfaceVisibility: 'hidden',
-            imageRendering: 'auto'
-          }}
-          loading="eager"
-          decoding="async"
+          alt="Left Background" 
+          flipped={true}
         />
       </div>
 
@@ -590,7 +602,12 @@ function MainApp() {
       {/* Animated background gradient */}
       <div 
         className="absolute inset-0 opacity-20"
-        style={backgroundGradientStyle}
+        style={{
+          ...backgroundGradientStyle,
+          willChange: 'auto',
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)'
+        }}
       />
 
       {/* Lyrics */}
@@ -603,7 +620,7 @@ function MainApp() {
       ))}
 
       {/* Images */}
-      <AnimatePresence>
+      <AnimatePresence mode="popLayout">
         {imageItems.map((item) => {
           // Special skiing animation for ski.png
           if (item.src.includes('ski.png')) {

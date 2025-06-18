@@ -1,6 +1,7 @@
 // Regular image component for basic animations
 import React from 'react';
 import { ImageItem } from '../types';
+import CachedImage from './CachedImage';
 
 interface RegularImageProps {
   item: ImageItem;
@@ -8,11 +9,13 @@ interface RegularImageProps {
 }
 
 export const RegularImage = React.memo<RegularImageProps>(({ item, style }) => (
-  <img
+  <CachedImage
     key={item.id}
     src={item.src}
     alt=""
     style={style}
     className="select-none"
+    loading="eager"
+    decoding="sync"
   />
 ));

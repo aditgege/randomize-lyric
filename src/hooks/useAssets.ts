@@ -1,7 +1,8 @@
 // Custom hooks for asset loading and Spotify integration
 import { useState, useEffect } from 'react';
+import { imageCache } from '../utils/imageCache';
 
-// Enhanced asset preloader with progress tracking
+// Enhanced asset preloader with progress tracking and image caching
 export const useAssetLoader = (imageNames: string[]) => {
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -24,20 +25,23 @@ export const useAssetLoader = (imageNames: string[]) => {
       }
     };
 
-    // Preload images
-    setLoadingStatus('Loading images...');
+    // Preload and cache images using the image cache system
+    setLoadingStatus('Caching images...');
     const imagePromises = imageNames.map((name) => {
       return new Promise<void>((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          updateProgress(1, `Loaded ${name}`);
-          resolve();
-        };
-        img.onerror = () => {
-          updateProgress(1, `Failed to load ${name}`);
-          resolve(); // Continue even if image fails
-        };
-        img.src = `/dean/${name}`;
+        // Determine the full path based on the name
+        const imagePath = name.startsWith('/') ? name : `/dean/${name}`;
+        
+        imageCache.cacheImage(imagePath)
+          .then(() => {
+            updateProgress(1, `Cached ${name}`);
+            resolve();
+          })
+          .catch((error) => {
+            console.warn(`Failed to cache ${name}:`, error);
+            updateProgress(1, `Failed to cache ${name}`);
+            resolve(); // Continue even if image fails
+          });
       });
     });
 
